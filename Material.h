@@ -14,9 +14,9 @@ class Material
 {
 public:
 	Material(
-		std::shared_ptr<SimplePixelShader> ps,
-		std::shared_ptr<SimpleVertexShader> vs,
-		DirectX::XMFLOAT3 tint = DirectX::XMFLOAT3(1, 1, 1),
+		std::shared_ptr<SimplePixelShader> ps, 
+		std::shared_ptr<SimpleVertexShader> vs, 
+		DirectX::XMFLOAT3 tint, 
 		DirectX::XMFLOAT2 uvScale = DirectX::XMFLOAT2(1, 1),
 		DirectX::XMFLOAT2 uvOffset = DirectX::XMFLOAT2(0, 0));
 
@@ -47,7 +47,7 @@ private:
 	// Shaders
 	std::shared_ptr<SimplePixelShader> ps;
 	std::shared_ptr<SimpleVertexShader> vs;
-
+	
 	// Material properties
 	DirectX::XMFLOAT3 colorTint;
 

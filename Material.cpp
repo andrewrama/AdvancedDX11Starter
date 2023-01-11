@@ -1,11 +1,11 @@
 #include "Material.h"
 
 Material::Material(
-	std::shared_ptr<SimplePixelShader> ps,
-	std::shared_ptr<SimpleVertexShader> vs,
-	DirectX::XMFLOAT3 tint,
+	std::shared_ptr<SimplePixelShader> ps, 
+	std::shared_ptr<SimpleVertexShader> vs, 
+	DirectX::XMFLOAT3 tint, 
 	DirectX::XMFLOAT2 uvScale,
-	DirectX::XMFLOAT2 uvOffset)
+	DirectX::XMFLOAT2 uvOffset) 
 	:
 	ps(ps),
 	vs(vs),
@@ -86,7 +86,7 @@ void Material::PrepareMaterial(Transform* transform, std::shared_ptr<Camera> cam
 
 	// Send data to the vertex shader
 	vs->SetMatrix4x4("world", transform->GetWorldMatrix());
-	vs->SetMatrix4x4("worldInverseTranspose", transform->GetWorldInverseTransposeMatrix());
+	vs->SetMatrix4x4("worldInvTrans", transform->GetWorldInverseTransposeMatrix());
 	vs->SetMatrix4x4("view", camera->GetView());
 	vs->SetMatrix4x4("projection", camera->GetProjection());
 	vs->CopyAllBufferData();

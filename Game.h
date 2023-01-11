@@ -11,7 +11,7 @@
 #include "Sky.h"
 
 #include <DirectXMath.h>
-#include <wrl/client.h> // Used for ComPtr - a smart pointer for COM objects
+#include <wrl/client.h>
 #include <vector>
 
 class Game 

@@ -5,6 +5,7 @@
 #include "Game.h"
 #include "Vertex.h"
 #include "Input.h"
+#include "Helpers.h"
 
 #include "WICTextureLoader.h"
 
@@ -20,8 +21,8 @@ using namespace DirectX;
 #define RandomRange(min, max) (float)rand() / RAND_MAX * (max - min) + min
 
 // Helper macros for making texture and shader loading code more succinct
-#define LoadTexture(file, srv) CreateWICTextureFromFile(device.Get(), context.Get(), GetFullPathTo_Wide(file).c_str(), 0, srv.GetAddressOf())
-#define LoadShader(type, file) std::make_shared<type>(device.Get(), context.Get(), GetFullPathTo_Wide(file).c_str())
+#define LoadTexture(file, srv) CreateWICTextureFromFile(device.Get(), context.Get(), FixPath(file).c_str(), 0, srv.GetAddressOf())
+#define LoadShader(type, file) std::make_shared<type>(device.Get(), context.Get(), FixPath(file).c_str())
 
 
 // --------------------------------------------------------
@@ -34,11 +35,12 @@ using namespace DirectX;
 // --------------------------------------------------------
 Game::Game(HINSTANCE hInstance)
 	: DXCore(
-		hInstance,		   // The application's handle
-		"DirectX Game",	   // Text for the window's title bar
-		1280,			   // Width of the window's client area
-		720,			   // Height of the window's client area
-		true),			   // Show extra stats (fps) in title bar?
+		hInstance,			// The application's handle
+		L"DirectX Game",	// Text for the window's title bar (as a wide-character string)
+		1280,				// Width of the window's client area
+		720,				// Height of the window's client area
+		false,				// Sync the framerate to the monitor refresh? (lock framerate)
+		true),				// Show extra stats (fps) in title bar?
 	camera(0),
 	sky(0),
 	spriteBatch(0),
@@ -87,12 +89,25 @@ void Game::Init()
 	lightCount = 64;
 	GenerateLights();
 
-	// Make our camera
+	// Set initial graphics API state
+	//  - These settings persist until we change them
+	{
+		// Tell the input assembler (IA) stage of the pipeline what kind of
+		// geometric primitives (points, lines or triangles) we want to draw.  
+		// Essentially: "What kind of shape should the GPU draw with our vertices?"
+		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	}
+
+	// Create the camera
 	camera = std::make_shared<Camera>(
-		0.0f, 0.0f, -10.0f,	// Position
-		3.0f,		// Move speed
-		1.0f,		// Mouse look
-		this->width / (float)this->height); // Aspect ratio
+		0.0f, 0.0f, -15.0f,	// Position
+		5.0f,				// Move speed
+		3.0f,				// Look speed
+		XM_PIDIV4,			// Field of view
+		(float)windowWidth / windowHeight,  // Aspect ratio
+		0.01f,				// Near clip
+		100.0f,				// Far clip
+		CameraProjectionType::Perspective);
 }
 
 
@@ -112,13 +127,13 @@ void Game::LoadAssetsAndCreateEntities()
 
 	// Set up the sprite batch and load the sprite font
 	spriteBatch = std::make_shared<SpriteBatch>(context.Get());
-	arial = std::make_shared<SpriteFont>(device.Get(), GetFullPathTo_Wide(L"../../Assets/Textures/arial.spritefont").c_str());
+	arial = std::make_shared<SpriteFont>(device.Get(), FixPath(L"../../Assets/Textures/arial.spritefont").c_str());
 
 	// Make the meshes
-	std::shared_ptr<Mesh> sphereMesh = std::make_shared<Mesh>(GetFullPathTo("../../Assets/Models/sphere.obj").c_str(), device);
-	std::shared_ptr<Mesh> helixMesh = std::make_shared<Mesh>(GetFullPathTo("../../Assets/Models/helix.obj").c_str(), device);
-	std::shared_ptr<Mesh> cubeMesh = std::make_shared<Mesh>(GetFullPathTo("../../Assets/Models/cube.obj").c_str(), device);
-	std::shared_ptr<Mesh> coneMesh = std::make_shared<Mesh>(GetFullPathTo("../../Assets/Models/cone.obj").c_str(), device);
+	std::shared_ptr<Mesh> sphereMesh = std::make_shared<Mesh>(FixPath(L"../../Assets/Models/sphere.obj").c_str(), device);
+	std::shared_ptr<Mesh> helixMesh = std::make_shared<Mesh>(FixPath(L"../../Assets/Models/helix.obj").c_str(), device);
+	std::shared_ptr<Mesh> cubeMesh = std::make_shared<Mesh>(FixPath(L"../../Assets/Models/cube.obj").c_str(), device);
+	std::shared_ptr<Mesh> coneMesh = std::make_shared<Mesh>(FixPath(L"../../Assets/Models/cone.obj").c_str(), device);
 	
 	// Declare the textures we'll need
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> cobbleA,  cobbleN,  cobbleR,  cobbleM;
@@ -178,12 +193,12 @@ void Game::LoadAssetsAndCreateEntities()
 
 	// Create the sky using 6 images
 	sky = std::make_shared<Sky>(
-		GetFullPathTo_Wide(L"..\\..\\Assets\\Skies\\Clouds Blue\\right.png").c_str(),
-		GetFullPathTo_Wide(L"..\\..\\Assets\\Skies\\Clouds Blue\\left.png").c_str(),
-		GetFullPathTo_Wide(L"..\\..\\Assets\\Skies\\Clouds Blue\\up.png").c_str(),
-		GetFullPathTo_Wide(L"..\\..\\Assets\\Skies\\Clouds Blue\\down.png").c_str(),
-		GetFullPathTo_Wide(L"..\\..\\Assets\\Skies\\Clouds Blue\\front.png").c_str(),
-		GetFullPathTo_Wide(L"..\\..\\Assets\\Skies\\Clouds Blue\\back.png").c_str(),
+		FixPath(L"..\\..\\Assets\\Skies\\Clouds Blue\\right.png").c_str(),
+		FixPath(L"..\\..\\Assets\\Skies\\Clouds Blue\\left.png").c_str(),
+		FixPath(L"..\\..\\Assets\\Skies\\Clouds Blue\\up.png").c_str(),
+		FixPath(L"..\\..\\Assets\\Skies\\Clouds Blue\\down.png").c_str(),
+		FixPath(L"..\\..\\Assets\\Skies\\Clouds Blue\\front.png").c_str(),
+		FixPath(L"..\\..\\Assets\\Skies\\Clouds Blue\\back.png").c_str(),
 		cubeMesh,
 		skyVS,
 		skyPS,
@@ -430,7 +445,7 @@ void Game::OnResize()
 
 	// Update our projection matrix to match the new aspect ratio
 	if (camera)
-		camera->UpdateProjectionMatrix(this->width / (float)this->height);
+		camera->UpdateProjectionMatrix(this->windowWidth / (float)this->windowHeight);
 }
 
 // --------------------------------------------------------
@@ -452,18 +467,17 @@ void Game::Update(float deltaTime, float totalTime)
 // --------------------------------------------------------
 void Game::Draw(float deltaTime, float totalTime)
 {
-	// Background color for clearing
-	const float color[4] = { 0, 0, 0, 1 };
+	// Frame START
+	// - These things should happen ONCE PER FRAME
+	// - At the beginning of Game::Draw() before drawing *anything*
+	{
+		// Clear the back buffer (erases what's on the screen)
+		const float bgColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f }; // Black
+		context->ClearRenderTargetView(backBufferRTV.Get(), bgColor);
 
-	// Clear the render target and depth buffer (erases what's on the screen)
-	//  - Do this ONCE PER FRAME
-	//  - At the beginning of Draw (before drawing *anything*)
-	context->ClearRenderTargetView(backBufferRTV.Get(), color);
-	context->ClearDepthStencilView(
-		depthStencilView.Get(),
-		D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
-		1.0f,
-		0);
+		// Clear the depth buffer (resets per-pixel occlusion information)
+		context->ClearDepthStencilView(depthBufferDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+	}
 
 
 	// Draw all of the entities
@@ -494,14 +508,18 @@ void Game::Draw(float deltaTime, float totalTime)
 	DrawUI();
 
 
-	// Present the back buffer to the user
-	//  - Puts the final frame we're drawing into the window so the user can see it
-	//  - Do this exactly ONCE PER FRAME (always at the very end of the frame)
-	swapChain->Present(0, 0);
+	// Frame END
+	// - These should happen exactly ONCE PER FRAME
+	// - At the very end of the frame (after drawing *everything*)
+	{
+		// Present the back buffer to the user
+		//  - Puts the results of what we've drawn onto the window
+		//  - Without this, the user never sees anything
+		swapChain->Present(vsync ? 1 : 0, 0);
 
-	// Due to the usage of a more sophisticated swap chain,
-	// the render target must be re-bound after every call to Present()
-	context->OMSetRenderTargets(1, backBufferRTV.GetAddressOf(), depthStencilView.Get());
+		// Must re-bind buffers after presenting, as they become unbound
+		context->OMSetRenderTargets(1, backBufferRTV.GetAddressOf(), depthBufferDSV.Get());
+	}
 }
 
 
