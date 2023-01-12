@@ -5,8 +5,6 @@
 #include "GameEntity.h"
 #include "Camera.h"
 #include "SimpleShader.h"
-#include "SpriteFont.h"
-#include "SpriteBatch.h"
 #include "Lights.h"
 #include "Sky.h"
 
@@ -38,16 +36,13 @@ private:
 	// Lights
 	std::vector<Light> lights;
 	int lightCount;
+	bool showPointLights;
 
 	// These will be loaded along with other assets and
 	// saved to these variables for ease of access
 	std::shared_ptr<Mesh> lightMesh;
 	std::shared_ptr<SimpleVertexShader> lightVS;
 	std::shared_ptr<SimplePixelShader> lightPS;
-
-	// Text & ui
-	std::shared_ptr<DirectX::SpriteFont> arial;
-	std::shared_ptr<DirectX::SpriteBatch> spriteBatch;
 
 	// Texture related resources
 	Microsoft::WRL::ComPtr<ID3D11SamplerState> samplerOptions;
@@ -56,11 +51,18 @@ private:
 	std::shared_ptr<Sky> sky;
 
 	// General helpers for setup and drawing
+	void LoadAssetsAndCreateEntities();
 	void GenerateLights();
 	void DrawPointLights();
-	void DrawUI();
 
-	// Initialization helper method
-	void LoadAssetsAndCreateEntities();
+	// UI functions
+	void UINewFrame(float deltaTime);
+	void BuildUI();
+	void CameraUI(std::shared_ptr<Camera> cam);
+	void EntityUI(std::shared_ptr<GameEntity> entity);	
+	void LightUI(Light& light);
+	
+	// Should the ImGui demo window be shown?
+	bool showUIDemoWindow;
 };
 

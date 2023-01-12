@@ -14,7 +14,8 @@ Camera::Camera(
 	float aspectRatio, 
 	float nearClip,
 	float farClip,
-	CameraProjectionType projType) :
+	CameraProjectionType projType) 
+	:
 	movementSpeed(moveSpeed),
 	mouseLookSpeed(mouseLookSpeed),
 	fieldOfView(fieldOfView),
@@ -38,7 +39,8 @@ Camera::Camera(
 	float aspectRatio,
 	float nearClip,
 	float farClip,
-	CameraProjectionType projType) :
+	CameraProjectionType projType) 
+	:
 	movementSpeed(moveSpeed),
 	mouseLookSpeed(mouseLookSpeed),
 	fieldOfView(fieldOfView), 
@@ -83,8 +85,8 @@ void Camera::Update(float dt)
 	if (input.MouseLeftDown())
 	{
 		// Calculate cursor change
-		float xDiff = dt * mouseLookSpeed * input.GetMouseXDelta();
-		float yDiff = dt * mouseLookSpeed * input.GetMouseYDelta();
+		float xDiff = mouseLookSpeed * input.GetMouseXDelta();
+		float yDiff = mouseLookSpeed * input.GetMouseYDelta();
 		transform.Rotate(yDiff, xDiff, 0);
 
 		// Clamp the X rotation
