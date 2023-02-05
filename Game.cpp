@@ -329,24 +329,31 @@ void Game::LoadAssetsAndCreateEntities()
 	// === Create the PBR entities =====================================
 	std::shared_ptr<GameEntity> cobSpherePBR = std::make_shared<GameEntity>(sphereMesh, cobbleMat2xPBR);
 	cobSpherePBR->GetTransform()->SetPosition(-6, 2, 0);
+	cobSpherePBR->GetTransform()->SetScale(2, 2, 2);
 
 	std::shared_ptr<GameEntity> floorSpherePBR = std::make_shared<GameEntity>(sphereMesh, floorMatPBR);
 	floorSpherePBR->GetTransform()->SetPosition(-4, 2, 0);
+	floorSpherePBR->GetTransform()->SetScale(2, 2, 2);
 
 	std::shared_ptr<GameEntity> paintSpherePBR = std::make_shared<GameEntity>(sphereMesh, paintMatPBR);
 	paintSpherePBR->GetTransform()->SetPosition(-2, 2, 0);
+	paintSpherePBR->GetTransform()->SetScale(2, 2, 2);
 
 	std::shared_ptr<GameEntity> scratchSpherePBR = std::make_shared<GameEntity>(sphereMesh, scratchedMatPBR);
 	scratchSpherePBR->GetTransform()->SetPosition(0, 2, 0);
+	scratchSpherePBR->GetTransform()->SetScale(2, 2, 2);
 
 	std::shared_ptr<GameEntity> bronzeSpherePBR = std::make_shared<GameEntity>(sphereMesh, bronzeMatPBR);
 	bronzeSpherePBR->GetTransform()->SetPosition(2, 2, 0);
+	bronzeSpherePBR->GetTransform()->SetScale(2, 2, 2);
 
 	std::shared_ptr<GameEntity> roughSpherePBR = std::make_shared<GameEntity>(sphereMesh, roughMatPBR);
 	roughSpherePBR->GetTransform()->SetPosition(4, 2, 0);
+	roughSpherePBR->GetTransform()->SetScale(2, 2, 2);
 
 	std::shared_ptr<GameEntity> woodSpherePBR = std::make_shared<GameEntity>(sphereMesh, woodMatPBR);
 	woodSpherePBR->GetTransform()->SetPosition(6, 2, 0);
+	woodSpherePBR->GetTransform()->SetScale(2, 2, 2);
 
 	entities.push_back(cobSpherePBR);
 	entities.push_back(floorSpherePBR);
@@ -359,24 +366,31 @@ void Game::LoadAssetsAndCreateEntities()
 	// Create the non-PBR entities ==============================
 	std::shared_ptr<GameEntity> cobSphere = std::make_shared<GameEntity>(sphereMesh, cobbleMat2x);
 	cobSphere->GetTransform()->SetPosition(-6, -2, 0);
+	cobSphere->GetTransform()->SetScale(2, 2, 2);
 
 	std::shared_ptr<GameEntity> floorSphere = std::make_shared<GameEntity>(sphereMesh, floorMat);
 	floorSphere->GetTransform()->SetPosition(-4, -2, 0);
+	floorSphere->GetTransform()->SetScale(2, 2, 2);
 
 	std::shared_ptr<GameEntity> paintSphere = std::make_shared<GameEntity>(sphereMesh, paintMat);
 	paintSphere->GetTransform()->SetPosition(-2, -2, 0);
+	paintSphere->GetTransform()->SetScale(2, 2, 2);
 
 	std::shared_ptr<GameEntity> scratchSphere = std::make_shared<GameEntity>(sphereMesh, scratchedMat);
 	scratchSphere->GetTransform()->SetPosition(0, -2, 0);
+	scratchSphere->GetTransform()->SetScale(2, 2, 2);
 
 	std::shared_ptr<GameEntity> bronzeSphere = std::make_shared<GameEntity>(sphereMesh, bronzeMat);
 	bronzeSphere->GetTransform()->SetPosition(2, -2, 0);
+	bronzeSphere->GetTransform()->SetScale(2, 2, 2);
 
 	std::shared_ptr<GameEntity> roughSphere = std::make_shared<GameEntity>(sphereMesh, roughMat);
 	roughSphere->GetTransform()->SetPosition(4, -2, 0);
+	roughSphere->GetTransform()->SetScale(2, 2, 2);
 
 	std::shared_ptr<GameEntity> woodSphere = std::make_shared<GameEntity>(sphereMesh, woodMat);
 	woodSphere->GetTransform()->SetPosition(6, -2, 0);
+	woodSphere->GetTransform()->SetScale(2, 2, 2);
 
 	entities.push_back(cobSphere);
 	entities.push_back(floorSphere);
