@@ -182,7 +182,6 @@ Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> Sky::CreateCubemap(
 {
 	// Load the 6 textures into an array.
 	// - We need references to the TEXTURES, not the SHADER RESOURCE VIEWS!
-	// - Specifically NOT generating mipmaps, as we don't need them for the sky!
 	// - Order matters here!  +X, -X, +Y, -Y, +Z, -Z
 	ID3D11Resource* textures[6] = {};
 	right.Get()->GetResource(&textures[0]);
@@ -248,6 +247,10 @@ Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> Sky::CreateCubemap(
 	// Make the SRV
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> cubeSRV;
 	device->CreateShaderResourceView(cubeMapTexture.Get(), &srvDesc, cubeSRV.GetAddressOf());
+
+	// Clean up our extra texture refs
+	for (int i = 0; i < 6; i++)
+		textures[i]->Release();
 
 	// Send back the SRV, which is what we need for our shaders
 	return cubeSRV;
