@@ -29,12 +29,55 @@ Sky::Sky(
 }
 
 Sky::Sky(
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> cubeMap,
+	Microsoft::WRL::ComPtr<ID3D11SamplerState> samplerOptions,
+	Microsoft::WRL::ComPtr<ID3D11Device> device,
+	Microsoft::WRL::ComPtr<ID3D11DeviceContext> context) :
+	skySRV(cubeMap),
+	samplerOptions(samplerOptions),
+	device(device),
+	context(context)
+{
+	// Init render states
+	InitRenderStates();
+}
+
+Sky::Sky(
 	const wchar_t* right, 
 	const wchar_t* left, 
 	const wchar_t* up, 
 	const wchar_t* down, 
 	const wchar_t* front, 
 	const wchar_t* back, 
+	std::shared_ptr<Mesh> mesh,
+	std::shared_ptr<SimpleVertexShader> skyVS,
+	std::shared_ptr<SimplePixelShader> skyPS,
+	Microsoft::WRL::ComPtr<ID3D11SamplerState> samplerOptions,
+	Microsoft::WRL::ComPtr<ID3D11Device> device,
+	Microsoft::WRL::ComPtr<ID3D11DeviceContext> context)
+{
+	// Save params
+	this->skyMesh = mesh;
+	this->device = device;
+	this->context = context;
+	this->samplerOptions = samplerOptions;
+	this->skyVS = skyVS;
+	this->skyPS = skyPS;
+
+	// Init render states
+	InitRenderStates();
+
+	// Create texture from 6 images
+	skySRV = CreateCubemap(right, left, up, down, front, back);
+}
+
+Sky::Sky(
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> right,
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> left,
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> up,
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> down,
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> front,
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> back,
 	std::shared_ptr<Mesh> mesh,
 	std::shared_ptr<SimpleVertexShader> skyVS,
 	std::shared_ptr<SimplePixelShader> skyPS,
@@ -105,24 +148,54 @@ void Sky::InitRenderStates()
 	device->CreateDepthStencilState(&depthDesc, skyDepthState.GetAddressOf());
 }
 
-Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> Sky::CreateCubemap(const wchar_t* right, const wchar_t* left, const wchar_t* up, const wchar_t* down, const wchar_t* front, const wchar_t* back)
+Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> Sky::CreateCubemap(
+	const wchar_t* right,
+	const wchar_t* left,
+	const wchar_t* up,
+	const wchar_t* down,
+	const wchar_t* front,
+	const wchar_t* back)
 {
 	// Load the 6 textures into an array.
 	// - We need references to the TEXTURES, not the SHADER RESOURCE VIEWS!
 	// - Specifically NOT generating mipmaps, as we don't need them for the sky!
 	// - Order matters here!  +X, -X, +Y, -Y, +Z, -Z
-	Microsoft::WRL::ComPtr<ID3D11Texture2D> textures[6] = {};
-	CreateWICTextureFromFile(device.Get(), right, (ID3D11Resource**)textures[0].GetAddressOf(), 0);
-	CreateWICTextureFromFile(device.Get(), left, (ID3D11Resource**)textures[1].GetAddressOf(), 0);
-	CreateWICTextureFromFile(device.Get(), up, (ID3D11Resource**)textures[2].GetAddressOf(), 0);
-	CreateWICTextureFromFile(device.Get(), down, (ID3D11Resource**)textures[3].GetAddressOf(), 0);
-	CreateWICTextureFromFile(device.Get(), front, (ID3D11Resource**)textures[4].GetAddressOf(), 0);
-	CreateWICTextureFromFile(device.Get(), back, (ID3D11Resource**)textures[5].GetAddressOf(), 0);
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> textures[6] = {};
+	CreateWICTextureFromFile(device.Get(), right, 0, textures[0].GetAddressOf());
+	CreateWICTextureFromFile(device.Get(), left, 0, textures[1].GetAddressOf());
+	CreateWICTextureFromFile(device.Get(), up, 0, textures[2].GetAddressOf());
+	CreateWICTextureFromFile(device.Get(), down, 0, textures[3].GetAddressOf());
+	CreateWICTextureFromFile(device.Get(), front, 0, textures[4].GetAddressOf());
+	CreateWICTextureFromFile(device.Get(), back, 0, textures[5].GetAddressOf());
+
+	// Send back the SRV, which is what we need for our shaders
+	return CreateCubemap(textures[0], textures[1], textures[2], textures[3], textures[4], textures[5]);
+}
+
+Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> Sky::CreateCubemap(
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> right,
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> left,
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> up,
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> down,
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> front,
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> back)
+{
+	// Load the 6 textures into an array.
+	// - We need references to the TEXTURES, not the SHADER RESOURCE VIEWS!
+	// - Specifically NOT generating mipmaps, as we don't need them for the sky!
+	// - Order matters here!  +X, -X, +Y, -Y, +Z, -Z
+	ID3D11Resource* textures[6] = {};
+	right.Get()->GetResource(&textures[0]);
+	left.Get()->GetResource(&textures[1]);
+	up.Get()->GetResource(&textures[2]);
+	down.Get()->GetResource(&textures[3]);
+	front.Get()->GetResource(&textures[4]);
+	back.Get()->GetResource(&textures[5]);
 
 	// We'll assume all of the textures are the same color format and resolution,
 	// so get the description of the first shader resource view
 	D3D11_TEXTURE2D_DESC faceDesc = {};
-	textures[0]->GetDesc(&faceDesc);
+	((ID3D11Texture2D*)textures[0])->GetDesc(&faceDesc);
 
 	// Describe the resource for the cube map, which is simply 
 	// a "texture 2d array".  This is a special GPU resource format, 
@@ -159,7 +232,7 @@ Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> Sky::CreateCubemap(const wchar_
 			cubeMapTexture.Get(), // Destination resource
 			subresource,		// Dest subresource index (one of the array elements)
 			0, 0, 0,			// XYZ location of copy
-			textures[i].Get(),	// Source resource
+			textures[i],		// Source resource
 			0,					// Source subresource index (we're assuming there's only one)
 			0);					// Source subresource "box" of data to copy (zero means the whole thing)
 	}
