@@ -4,7 +4,7 @@ cbuffer externalData : register(b0)
     matrix projection;    
     float4 startColor;
     float4 endColor;
-    float3 direction; //Replace with acceleration
+    float3 accel; //Replace with acceleration
     float particleLifetime;
     float startSize;
     float endSize;
@@ -16,6 +16,7 @@ struct Particle
 {
     float EmitTime;
     float3 StartPosition;
+    float3 StartVelocity;
 };
 // Buffer of particle data
 StructuredBuffer<Particle> ParticleData : register(t0);
@@ -45,6 +46,7 @@ VertexToPixel main(uint id : SV_VertexID)
     
     // Offsets for the 4 corners of a quad - we'll only use one for each
     // vertex, but which one depends on the cornerID
+    // Scale by size
     float2 offsets[4];
     offsets[0] = float2(-1.0f, +1.0f) * size; // TL
     offsets[1] = float2(+1.0f, +1.0f) * size; // TR
@@ -53,7 +55,8 @@ VertexToPixel main(uint id : SV_VertexID)
     
     // Billboarding!
     // Offset the position based on the camera's right and up vectors
-    float3 pos = lerp(p.StartPosition, direction, age);
+    
+    float3 pos = accel * age * age / 2.0f + p.StartVelocity * age + p.StartPosition;
     pos += float3(view._11, view._12, view._13) * offsets[cornerID].x; // RIGHT
     pos += float3(view._21, view._22, view._23) * offsets[cornerID].y; // UP
     
@@ -68,6 +71,8 @@ VertexToPixel main(uint id : SV_VertexID)
     
     output.uv = uvs[cornerID];
     output.colorTint = lerp(startColor, endColor, agePercentage);
+    
+    // Update alpha value separately
     output.colorTint.a = alpha;
 
     return output;

@@ -12,6 +12,7 @@ struct Particle
 {
 	float EmitTime;
 	DirectX::XMFLOAT3 StartPos;
+	DirectX::XMFLOAT3 StartVel;
 };
 
 class Emitter
@@ -24,7 +25,8 @@ private:
 	int indexFirstAlive;
 	int livingParticleCount;
 
-	DirectX::XMFLOAT3 direction;
+	DirectX::XMFLOAT3 acceleration;
+	DirectX::XMFLOAT3 startVelocity;
 	float startSize;
 	float endSize;
 	DirectX::XMFLOAT4 startColor;
@@ -58,13 +60,14 @@ public:
 		int particlesPerSecond,
 		float maxParticleLifetime,
 		DirectX::XMFLOAT3 startPos = DirectX::XMFLOAT3(0, 0, 0),
-		DirectX::XMFLOAT3 direction = DirectX::XMFLOAT3(1, 0, 0),
+		DirectX::XMFLOAT3 acceleration = DirectX::XMFLOAT3(0, 0, 0),
 		float startSize = 1.0f,
 		float endSize = 1.0f,
 		DirectX::XMFLOAT4 startColor = DirectX::XMFLOAT4(1, 1, 1, 1), 
 		DirectX::XMFLOAT4 endColor = DirectX::XMFLOAT4(1, 1, 1, 1),
 		float startAlpha = 1.0f,
-		float endAlpha = 1.0f);
+		float endAlpha = 1.0f,
+		DirectX::XMFLOAT3 startVelocity = DirectX::XMFLOAT3(1, 0, 0));
 
 	~Emitter();
 

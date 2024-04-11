@@ -6,26 +6,28 @@ Emitter::Emitter(Microsoft::WRL::ComPtr<ID3D11Device> device,
     int particlesPerSecond,
     float maxParticleLifetime,
     DirectX::XMFLOAT3 startPos,
-    DirectX::XMFLOAT3 direction,
+    DirectX::XMFLOAT3 acceleration,
     float startSize,
     float endSize,
     DirectX::XMFLOAT4 startColor,
     DirectX::XMFLOAT4 endColor, 
     float startAlpha,
-    float endAlpha)
+    float endAlpha,
+    DirectX::XMFLOAT3 startVelocity)
     :
     device(device),
     material(material),
     maxParticles(maxParticles),
     particlesPerSecond(particlesPerSecond),
     maxParticleLifetime(maxParticleLifetime),
-    direction(direction),
+    acceleration(acceleration),
     startSize(startSize),
     endSize(endSize),
     startColor(startColor),
     endColor(endColor),
     startAlpha(startAlpha),
-    endAlpha(endAlpha)
+    endAlpha(endAlpha),
+    startVelocity(startVelocity)
 {
     secondsBetweenEmission = 1.0f / particlesPerSecond;
 
@@ -58,6 +60,11 @@ void Emitter::EmitParticle(float currentTime)
     particles[indexFirstDead].StartPos.x += ((float)rand() / RAND_MAX * (1.0f - -1.0f) + -1.0f);
     particles[indexFirstDead].StartPos.y += ((float)rand() / RAND_MAX * (1.0f - -1.0f) + -1.0f);
     particles[indexFirstDead].StartPos.z += ((float)rand() / RAND_MAX * (1.0f - -1.0f) + -1.0f);
+
+    particles[indexFirstDead].StartVel = startVelocity;
+    particles[indexFirstDead].StartVel.x += ((float)rand() / RAND_MAX * (1.0f - -1.0f) + -1.0f);
+    particles[indexFirstDead].StartVel.y += ((float)rand() / RAND_MAX * (1.0f - -1.0f) + -1.0f);
+    particles[indexFirstDead].StartVel.z += ((float)rand() / RAND_MAX * (1.0f - -1.0f) + -1.0f);
 
     indexFirstDead++;
     indexFirstDead %= maxParticles;
@@ -229,7 +236,7 @@ void Emitter::Draw(Microsoft::WRL::ComPtr<ID3D11DeviceContext> context, std::sha
     vs->SetMatrix4x4("view", camera->GetView());
     vs->SetMatrix4x4("projection", camera->GetProjection());
     vs->SetFloat("currentTime", currentTime);
-    vs->SetFloat3("direction", direction);
+    vs->SetFloat3("accel", acceleration);
     vs->SetFloat("particleLifetime", maxParticleLifetime);
     vs->SetFloat4("startColor", startColor);
     vs->SetFloat4("endColor", endColor);
