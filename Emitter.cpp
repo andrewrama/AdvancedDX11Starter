@@ -4,16 +4,24 @@ Emitter::Emitter(Microsoft::WRL::ComPtr<ID3D11Device> device,
     std::shared_ptr<Material> material,
     int maxParticles,
     int particlesPerSecond,
-    float maxParticleLifetime, 
+    float maxParticleLifetime,
     DirectX::XMFLOAT3 startPos,
-    DirectX::XMFLOAT3 direction)
+    DirectX::XMFLOAT3 direction,
+    float startSize,
+    float endSize,
+    DirectX::XMFLOAT4 startColor,
+    DirectX::XMFLOAT4 endColor)
     :
     device(device),
     material(material),
     maxParticles(maxParticles),
     particlesPerSecond(particlesPerSecond),
     maxParticleLifetime(maxParticleLifetime),
-    direction(direction)
+    direction(direction),
+    startSize(startSize),
+    endSize(endSize),
+    startColor(startColor),
+    endColor(endColor)
 {
     secondsBetweenEmission = 1.0f / particlesPerSecond;
 
@@ -219,6 +227,10 @@ void Emitter::Draw(Microsoft::WRL::ComPtr<ID3D11DeviceContext> context, std::sha
     vs->SetFloat("currentTime", currentTime);
     vs->SetFloat3("direction", direction);
     vs->SetFloat("particleLifetime", maxParticleLifetime);
+    vs->SetFloat4("startColor", startColor);
+    vs->SetFloat4("endColor", endColor);
+    vs->SetFloat("startSize", startSize);
+    vs->SetFloat("endSize", endSize);
     vs->SetShaderResourceView("ParticleData", particleSRV);
     vs->CopyAllBufferData();
 

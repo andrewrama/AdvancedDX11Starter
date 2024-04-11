@@ -3,8 +3,12 @@ cbuffer externalData : register(b0)
     matrix view;
     matrix projection;
     float currentTime;
-    float3 direction;
+    float3 direction; //Replace with acceleration
     float particleLifetime;
+    float4 startColor;
+    float4 endColor;
+    float startSize;
+    float endSize;
 };
 struct Particle
 {
@@ -32,6 +36,9 @@ VertexToPixel main(uint id : SV_VertexID)
     Particle p = ParticleData.Load(particleID);
     
     float age = currentTime - p.EmitTime;
+    float agePercentage = age / particleLifetime;
+    
+    float size = lerp(startSize, endSize, agePercentage);
     
     // Offsets for the 4 corners of a quad - we'll only use one for each
     // vertex, but which one depends on the cornerID
@@ -57,6 +64,7 @@ VertexToPixel main(uint id : SV_VertexID)
     uvs[3] = float2(0, 1); //BL
     
     output.uv = uvs[cornerID];
+    output.colorTint = lerp(startColor, endColor, agePercentage);
     
     return output;
 }

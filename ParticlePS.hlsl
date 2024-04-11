@@ -10,5 +10,5 @@ SamplerState BasicSampler : register(s0);
 
 float4 main(VertexToPixel input) : SV_TARGET
 {
-    return Particle.Sample(BasicSampler, input.uv);
+    return Particle.Sample(BasicSampler, input.uv) * input.colorTint;
 }
