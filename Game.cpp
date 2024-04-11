@@ -140,6 +140,9 @@ void Game::LoadAssetsAndCreateEntities()
 	std::shared_ptr<SimpleVertexShader> skyVS = LoadShader(SimpleVertexShader, L"SkyVS.cso");
 	std::shared_ptr<SimplePixelShader> skyPS  = LoadShader(SimplePixelShader, L"SkyPS.cso");
 
+	std::shared_ptr<SimpleVertexShader> particleVS = LoadShader(SimpleVertexShader, L"ParticleVS.cso");
+	std::shared_ptr<SimplePixelShader> particlePS = LoadShader(SimplePixelShader, L"ParticlePS.cso");
+
 	// Make the meshes
 	std::shared_ptr<Mesh> sphereMesh = std::make_shared<Mesh>(FixPath(L"../../Assets/Models/sphere.obj").c_str(), device);
 	std::shared_ptr<Mesh> helixMesh = std::make_shared<Mesh>(FixPath(L"../../Assets/Models/helix.obj").c_str(), device);
@@ -324,6 +327,52 @@ void Game::LoadAssetsAndCreateEntities()
 	woodMatPBR->AddTextureSRV("RoughnessMap", woodR);
 	woodMatPBR->AddTextureSRV("MetalMap", woodM);
 
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> smoke;
+	LoadTexture(L"../../Assets/Textures/Particles/smoke_04.png", smoke);
+
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> fire;
+	LoadTexture(L"../../Assets/Textures/Particles/fire_01.png", fire);
+
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> spark;
+	LoadTexture(L"../../Assets/Textures/Particles/spark_01.png", spark);
+
+	std::shared_ptr<Material> smokeParticle = std::make_shared<Material>(particlePS, particleVS, XMFLOAT3(1, 1, 1));
+	smokeParticle->AddSampler("BasicSampler", samplerOptions);
+	smokeParticle->AddTextureSRV("Particle", smoke);
+
+	std::shared_ptr<Material> fireParticle = std::make_shared<Material>(particlePS, particleVS, XMFLOAT3(1, 1, 1));
+	fireParticle->AddSampler("BasicSampler", samplerOptions);
+	fireParticle->AddTextureSRV("Particle", fire);
+
+	std::shared_ptr<Material> sparkParticle = std::make_shared<Material>(particlePS, particleVS, XMFLOAT3(1, 1, 1));
+	sparkParticle->AddSampler("BasicSampler", samplerOptions);
+	sparkParticle->AddTextureSRV("Particle", spark);
+
+	// A depth state for the particles
+	D3D11_DEPTH_STENCIL_DESC dsDesc = {};
+	dsDesc.DepthEnable = true;
+	dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO; // Turns off depth writing
+	dsDesc.DepthFunc = D3D11_COMPARISON_LESS;
+	device->CreateDepthStencilState(&dsDesc, particleDepthState.GetAddressOf());
+
+	// Blend for particles (additive)
+	D3D11_BLEND_DESC blend = {};
+	blend.AlphaToCoverageEnable = false;
+	blend.IndependentBlendEnable = false;
+	blend.RenderTarget[0].BlendEnable = true;
+	blend.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+	blend.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA; // Still respect pixel shader output alpha
+	blend.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;
+	blend.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	blend.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+	blend.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ONE;
+	blend.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+	device->CreateBlendState(&blend, particleBlendState.GetAddressOf());
+
+
+	emitters.push_back(std::make_shared<Emitter>(device, smokeParticle, 100, 20, 5.0f));
+	emitters.push_back(std::make_shared<Emitter>(device, fireParticle, 100, 20, 5.0f, XMFLOAT3(-2, 2, 0), XMFLOAT3(-2, 5, 0)));
+	emitters.push_back(std::make_shared<Emitter>(device, fireParticle, 100, 20, 5.0f, XMFLOAT3(4, -3, 0), XMFLOAT3(-1, -4, 0)));
 
 
 	// === Create the PBR entities =====================================
@@ -487,6 +536,9 @@ void Game::Update(float deltaTime, float totalTime)
 	// Update the camera
 	camera->Update(deltaTime);
 
+	for (auto& e : emitters)
+		e->Update(deltaTime, totalTime);
+
 	// Check individual input
 	Input& input = Input::GetInstance();
 	if (input.KeyDown(VK_ESCAPE)) Quit();
@@ -535,6 +587,23 @@ void Game::Draw(float deltaTime, float totalTime)
 
 	// Draw the sky
 	sky->Draw(camera);
+
+
+	{
+
+		context->OMSetBlendState(particleBlendState.Get(), 0, 0xffffffff);	// Additive blending
+		context->OMSetDepthStencilState(particleDepthState.Get(), 0);		// No depth WRITING
+		for (auto& e : emitters) 
+		{
+			e->Draw(context, camera, totalTime);
+		}
+
+		// Reset to default states for next frame
+		context->OMSetBlendState(0, 0, 0xffffffff);
+		context->OMSetDepthStencilState(0, 0);
+		context->RSSetState(0);
+	}
+	
 
 	// Frame END
 	// - These should happen exactly ONCE PER FRAME

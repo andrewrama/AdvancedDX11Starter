@@ -7,6 +7,7 @@
 #include "SimpleShader.h"
 #include "Lights.h"
 #include "Sky.h"
+#include "Emitter.h"
 
 #include <DirectXMath.h>
 #include <wrl/client.h>
@@ -37,6 +38,10 @@ private:
 	std::vector<Light> lights;
 	int lightCount;
 	bool showPointLights;
+
+	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> particleDepthState;
+	Microsoft::WRL::ComPtr<ID3D11BlendState> particleBlendState;
+	std::vector<std::shared_ptr<Emitter>> emitters;
 
 	// These will be loaded along with other assets and
 	// saved to these variables for ease of access
