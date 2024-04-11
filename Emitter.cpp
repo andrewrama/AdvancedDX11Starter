@@ -10,7 +10,9 @@ Emitter::Emitter(Microsoft::WRL::ComPtr<ID3D11Device> device,
     float startSize,
     float endSize,
     DirectX::XMFLOAT4 startColor,
-    DirectX::XMFLOAT4 endColor)
+    DirectX::XMFLOAT4 endColor, 
+    float startAlpha,
+    float endAlpha)
     :
     device(device),
     material(material),
@@ -21,7 +23,9 @@ Emitter::Emitter(Microsoft::WRL::ComPtr<ID3D11Device> device,
     startSize(startSize),
     endSize(endSize),
     startColor(startColor),
-    endColor(endColor)
+    endColor(endColor),
+    startAlpha(startAlpha),
+    endAlpha(endAlpha)
 {
     secondsBetweenEmission = 1.0f / particlesPerSecond;
 
@@ -231,6 +235,8 @@ void Emitter::Draw(Microsoft::WRL::ComPtr<ID3D11DeviceContext> context, std::sha
     vs->SetFloat4("endColor", endColor);
     vs->SetFloat("startSize", startSize);
     vs->SetFloat("endSize", endSize);
+    vs->SetFloat("startAlpha", startAlpha);
+    vs->SetFloat("endAlpha", endAlpha);
     vs->SetShaderResourceView("ParticleData", particleSRV);
     vs->CopyAllBufferData();
 

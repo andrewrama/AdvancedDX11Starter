@@ -29,6 +29,8 @@ private:
 	float endSize;
 	DirectX::XMFLOAT4 startColor;
 	DirectX::XMFLOAT4 endColor;
+	float startAlpha;
+	float endAlpha;
 	// Emission Properties
 	int particlesPerSecond;
 	float secondsBetweenEmission;
@@ -60,7 +62,9 @@ public:
 		float startSize = 1.0f,
 		float endSize = 1.0f,
 		DirectX::XMFLOAT4 startColor = DirectX::XMFLOAT4(1, 1, 1, 1), 
-		DirectX::XMFLOAT4 endColor = DirectX::XMFLOAT4(1, 1, 1, 1));
+		DirectX::XMFLOAT4 endColor = DirectX::XMFLOAT4(1, 1, 1, 1),
+		float startAlpha = 1.0f,
+		float endAlpha = 1.0f);
 
 	~Emitter();
 

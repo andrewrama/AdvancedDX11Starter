@@ -40,7 +40,7 @@ private:
 	bool showPointLights;
 
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> particleDepthState;
-	Microsoft::WRL::ComPtr<ID3D11BlendState> particleBlendAdditive;
+	Microsoft::WRL::ComPtr<ID3D11BlendState> particleBlendState;
 	std::vector<std::shared_ptr<Emitter>> emitters;
 
 	// These will be loaded along with other assets and

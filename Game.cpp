@@ -356,24 +356,23 @@ void Game::LoadAssetsAndCreateEntities()
 	device->CreateDepthStencilState(&particleDepthDesc, particleDepthState.GetAddressOf());
 
 
-	bool additive = true;
-	// Blend state description for either additive or alpha blending (based on “additive” boolean)
-	D3D11_BLEND_DESC additiveBlendDesc = {};
-	additiveBlendDesc.RenderTarget[0].BlendEnable = true;
-	additiveBlendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD; // Add both colors
-	additiveBlendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD; // Add both alpha values
-	additiveBlendDesc.RenderTarget[0].SrcBlend = additive ? D3D11_BLEND_ONE : D3D11_BLEND_SRC_ALPHA;
-	additiveBlendDesc.RenderTarget[0].DestBlend = additive ? D3D11_BLEND_ONE : D3D11_BLEND_INV_SRC_ALPHA;
-	additiveBlendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
-	additiveBlendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ONE;
-	additiveBlendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-	device->CreateBlendState(&additiveBlendDesc, particleBlendAdditive.GetAddressOf());
+	// Blend state description for alpha blending
+	D3D11_BLEND_DESC blendDesc = {};
+	blendDesc.RenderTarget[0].BlendEnable = true;
+	blendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD; // Add both colors
+	blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD; // Add both alpha values
+	blendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
+	blendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+	blendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+	blendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ONE;
+	blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+	device->CreateBlendState(&blendDesc, particleBlendState.GetAddressOf());
 
 
 
 	emitters.push_back(std::make_shared<Emitter>(device, sparkParticle, 100, 20, 5.0f));
-	emitters.push_back(std::make_shared<Emitter>(device, fireParticle, 100, 20, 5.0f, XMFLOAT3(-2, 2, 0), XMFLOAT3(-2, 5, 0), 0.5f, 5.0f, XMFLOAT4(1, 1, 1, 1), XMFLOAT4(1, 0, 0, 1)));
-	emitters.push_back(std::make_shared<Emitter>(device, smokeParticle, 100, 20, 5.0f, XMFLOAT3(4, -3, 0), XMFLOAT3(-1, -4, 0), 0.5f, 5.0f, XMFLOAT4(0, 1, 0, 1), XMFLOAT4(1, 1, 1, 1)));
+	emitters.push_back(std::make_shared<Emitter>(device, fireParticle, 500, 50, 5.0f, XMFLOAT3(-3, 0, 0), XMFLOAT3(-2, 3, 0), 1.0f, 0.25f, XMFLOAT4(0.89f, 0.66f, 0.28f, 1), XMFLOAT4(1, 0, 0, 1), 1, 0.25f));
+	emitters.push_back(std::make_shared<Emitter>(device, smokeParticle, 100, 20, 5.0f, XMFLOAT3(4, -3, 0), XMFLOAT3(-1, -4, 0), 0.25f, 2.5f, XMFLOAT4(0, 1, 0, 1), XMFLOAT4(1, 1, 1, 1), 1, 0));
 
 
 	// === Create the PBR entities =====================================
@@ -588,12 +587,12 @@ void Game::Draw(float deltaTime, float totalTime)
 
 	// Draw the sky
 	sky->Draw(camera);
-
-
+	
+	// Blend state
 	{
 
-		context->OMSetBlendState(particleBlendAdditive.Get(), 0, 0xffffffff);	// Additive blending
-		context->OMSetDepthStencilState(particleDepthState.Get(), 0);		// No depth WRITING
+		context->OMSetBlendState(particleBlendState.Get(), 0, 0xffffffff);
+		context->OMSetDepthStencilState(particleDepthState.Get(), 0);
 		for (auto& e : emitters) 
 		{
 			e->Draw(context, camera, totalTime);
