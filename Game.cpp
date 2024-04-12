@@ -370,7 +370,7 @@ void Game::LoadAssetsAndCreateEntities()
 
 
 
-	emitters.push_back(std::make_shared<Emitter>(device, sparkParticle, 100, 20, 5.0f));
+	emitters.push_back(std::make_shared<Emitter>(device, sparkParticle, 500, 100, 2.5f, XMFLOAT3(3, 4, 0), XMFLOAT3(2, 4, 0), 0.1f, 1.0f, XMFLOAT4(0, 0, 1, 1), XMFLOAT4(1, 1, 1, 1), 1, 0.25f, XMFLOAT3(5, 5, 0)));
 	emitters.push_back(std::make_shared<Emitter>(device, fireParticle, 500, 50, 5.0f, XMFLOAT3(-3, 0, 0), XMFLOAT3(-2, 3, 0), 1.0f, 0.25f, XMFLOAT4(0.89f, 0.66f, 0.28f, 1), XMFLOAT4(1, 0, 0, 1), 1, 0.25f));
 	emitters.push_back(std::make_shared<Emitter>(device, smokeParticle, 100, 20, 5.0f, XMFLOAT3(4, -3, 0), XMFLOAT3(-4, -2, 0), 0.25f, 2.5f, XMFLOAT4(0, 1, 0, 1), XMFLOAT4(1, 1, 1, 1), 1, 0, XMFLOAT3(2, 1, 0)));
 

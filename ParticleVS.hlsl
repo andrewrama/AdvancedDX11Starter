@@ -4,7 +4,7 @@ cbuffer externalData : register(b0)
     matrix projection;    
     float4 startColor;
     float4 endColor;
-    float3 accel; //Replace with acceleration
+    float3 accel;
     float particleLifetime;
     float startSize;
     float endSize;
