@@ -277,6 +277,11 @@ void Game::LoadAssetsAndCreateEntities()
 	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
 	device->CreateSamplerState(&sampDesc, samplerOptions.GetAddressOf());
 
+	// Clamp shader stuff
+	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+	sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+	sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+	device->CreateSamplerState(&sampDesc, clampSamplerOptions.GetAddressOf());
 
 	// Create the sky using 6 images
 	sky = std::make_shared<Sky>(
@@ -816,6 +821,7 @@ void Game::PostProcess()
 		ssaoPS->SetShaderResourceView("Normals", renderTargetSRVs[RenderTargetType::SCENE_NORMALS]);
 		ssaoPS->SetShaderResourceView("Depths", renderTargetSRVs[RenderTargetType::SCENE_DEPTHS]);
 		ssaoPS->SetShaderResourceView("Random", randomTextureSRV);
+		ssaoPS->SetSamplerState("ClampSampler", clampSamplerOptions);
 
 		context->Draw(3, 0);
 	}
@@ -830,6 +836,7 @@ void Game::PostProcess()
 		ssaoBlurPS->SetShader();
 		ssaoBlurPS->SetShaderResourceView("SSAO", renderTargetSRVs[RenderTargetType::SSAO_RESULTS]);
 		ssaoBlurPS->SetFloat2("pixelSize", XMFLOAT2(1.0f / windowWidth, 1.0f / windowHeight));
+		ssaoBlurPS->SetSamplerState("ClampSampler", clampSamplerOptions);
 		ssaoBlurPS->CopyAllBufferData();
 		context->Draw(3, 0);
 	}
@@ -842,7 +849,6 @@ void Game::PostProcess()
 
 		ssaoCombinePS->SetShader();
 		ssaoCombinePS->SetShaderResourceView("SceneColorsDirect", renderTargetSRVs[RenderTargetType::SCENE_COLOR_DIRECT]);
-		ssaoCombinePS->SetShaderResourceView("SceneColorsIndirect", renderTargetSRVs[RenderTargetType::SCENE_COLOR_INDIRECT]);
 		ssaoCombinePS->SetShaderResourceView("SSAOBlur", renderTargetSRVs[RenderTargetType::SSAO_BLUR]);
 		ssaoCombinePS->SetFloat2("pixelSize", XMFLOAT2(1.0f / windowWidth, 1.0f / windowHeight));
 		ssaoCombinePS->CopyAllBufferData();

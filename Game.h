@@ -98,6 +98,7 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> randomTextureSRV;
 	int ssaoSamples = 64;
 	float ssaoRadius = 1.0f;
+	Microsoft::WRL::ComPtr<ID3D11SamplerState> clampSamplerOptions;
 
 	// SSAO Shaders
 	std::shared_ptr<SimplePixelShader> ssaoPS;
