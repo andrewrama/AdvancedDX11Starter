@@ -13,6 +13,19 @@
 #include <wrl/client.h>
 #include <vector>
 
+enum RenderTargetType
+{
+	SCENE_COLOR_DIRECT,
+	SCENE_COLOR_INDIRECT,
+	SCENE_NORMALS,
+	SCENE_DEPTHS,
+	SSAO_RESULTS,
+	SSAO_BLUR,
+
+	// Count is always the last one!
+	RENDER_TARGET_TYPE_COUNT
+};
+
 class Game 
 	: public DXCore
 {
@@ -59,6 +72,14 @@ private:
 	void LoadAssetsAndCreateEntities();
 	void GenerateLights();
 	void DrawPointLights();
+	void PostProcess();
+
+	void CreateRenderTarget(
+		unsigned int width,
+		unsigned int height,
+		Microsoft::WRL::ComPtr<ID3D11RenderTargetView>& rtv,
+		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& srv,
+		DXGI_FORMAT colorFormat = DXGI_FORMAT_R8G8B8A8_UNORM);
 
 	// UI functions
 	void UINewFrame(float deltaTime);
@@ -69,5 +90,18 @@ private:
 	
 	// Should the ImGui demo window be shown?
 	bool showUIDemoWindow;
-};
 
+	// SSAO
+	DirectX::XMFLOAT4 ssaoOffsets[64];
+	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> renderTargetRTVs[RenderTargetType::RENDER_TARGET_TYPE_COUNT];
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> renderTargetSRVs[RenderTargetType::RENDER_TARGET_TYPE_COUNT];
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> randomTextureSRV;
+	int ssaoSamples = 64;
+	float ssaoRadius = 1.0f;
+
+	// SSAO Shaders
+	std::shared_ptr<SimplePixelShader> ssaoPS;
+	std::shared_ptr<SimplePixelShader> ssaoBlurPS;
+	std::shared_ptr<SimplePixelShader> ssaoCombinePS;
+	std::shared_ptr<SimpleVertexShader> fullscreenVS;
+};
